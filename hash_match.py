@@ -12,6 +12,9 @@ except ImportError:
 hash_list = []
 unique_nt=[]
 hash_match=[]
+dup_hashes=[]
+hash_sets=[]
+da_reuse=[]
 da_list=[]
 dirty=""
 
@@ -28,7 +31,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.0",'blue')
+print colored("                                                                                      Version 1.1",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -81,7 +84,8 @@ for unt in unique_nt:
 	#If the match list is greater than one
 	if len(hash_match)>1:
 		#Print the string hash match with a new line at the beginning and end
-		print colored ("\nHash Match",'yellow')
+		print colored ("\n[+]Hash Match",'yellow')
+		hash_sets.append("Hash Match")
 		#If the list of Domain Admins is greater than zero
 		if len(da_list)>0:
 			#Cycle list of hashe matches
@@ -92,17 +96,37 @@ for unt in unique_nt:
 					if d in m:
 						#Print verbose message in red
 						print colored(m +" ***DOMAIN ADMIN***",'red')
+						#Add da reuse to list to create counter
+						da_reuse.append(m)
+						#Add duplicate hashes to list to create counter
+						dup_hashes.append(m)
 						#change the dirty flag
 						dirty="da"
 				#if dirty flag is empty print match
 				if dirty!="da":
 					print m
+					#Add duplicate hashes to list to create counter
+					dup_hashes.append(m)
 				#Clear dirty flag
 				dirty=""
 		else:
 		#If the list of Domain Admins is 0 just print out matches
 			for m in hash_match:
 				print m
+				#Add duplicate hashes to list to create counter
+				dup_hashes.append(m)
 
 	#empty matching hash list
 	hash_match=[]
+
+#Display some basic stats.
+#((unique_nt+dup_hashes)-hash_sets)=hash_list
+
+print colored("\n[+]Statistics","green")	
+print colored("[+]"+str(len(hash_list))+" Total Hashes in List",'yellow')
+print colored("[+]"+str(len(unique_nt))+" Unique Hashes",'yellow')
+print colored("[+]"+str(len(dup_hashes))+" Instances of password reuse were detected",'yellow')
+print colored("[+]"+str(len(hash_sets))+" Sets of hash reuse",'yellow')
+if len(da_list)>0:
+	print colored("[+]"+str(len(da_reuse))+" instances of DA reuse detected",'yellow')
+
