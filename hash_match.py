@@ -32,11 +32,8 @@ print colored("                                                                 
 print colored("                                                                                      @rd_pentest",'yellow')
 print "\n"                                                                                       
                                                                                                   
-#Hashes="/root/Desktop/192.168.0.37/nt.txt"
 Hashes=raw_input("[+]Please enter path to hash file: ")
-#DA_Path="/root/Desktop/da.txt"
 DA_Path=raw_input("[+](Optional)If you have a list of Domain Admins enter path or press Enter: ")
-#second_hash_list="/root/Desktop/192.168.0.37/nt.txt"
 second_hash_list=raw_input("[+](Optional)If you have a second set of hashes enter path or press Enter: ")
 
 #Check if DA list exists and if so open and add it list
@@ -63,7 +60,6 @@ if os.path.exists(second_hash_list):
 	with open(second_hash_list) as fp:
 		for line in fp:
 			hash_list.append(line.rstrip())
-
 
 #Build a list of NT hashes and make unique
 for nt in hash_list:
