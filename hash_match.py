@@ -28,8 +28,8 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.0",'yellow')
-print colored("                                                                                      @rd_pentest",'yellow')
+print colored("                                                                                      Version 1.0",'blue')
+print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
 Hashes=raw_input("[+]Please enter path to hash file: ")
@@ -61,19 +61,13 @@ if os.path.exists(second_hash_list):
 		for line in fp:
 			hash_list.append(line.rstrip())
 
+
 #Build a list of NT hashes and make unique
 for nt in hash_list:
 	unique_nt.append(nt.split(":")[3])
 
 #Build Unique List of NT hashes
 unique_nt=set(unique_nt)
-
-#Give some hash stat information
-print colored ("[+]Total Hashes "+str(len(hash_list)),'yellow')
-print colored ("[+]Total Unique Hashes "+str(len(unique_nt)),'yellow')
-
-if len(hash_list)>len(unique_nt):
-	print colored ("[+]Total Duplicate Hashes "+str(len(hash_list)-len(unique_nt)),'yellow')
 
 #Cycle Unique Hashes
 for unt in unique_nt:
