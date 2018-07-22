@@ -9,3 +9,5 @@ HashMatch will compare hash values and clearly indicate were password sharing ex
 Optionally a list of Domain Administrator account names can be supplied and these will be checked and indicated in red when found and Domain Admin will be appended to the end of the string.
 
 Optionally a second list of hashes from a second domain can also be supplied and HashMatch will identify common passwords between the two domains.
+
+Optionally HashMatch will correlate the hashcat cracked passwords output with reused hashes
