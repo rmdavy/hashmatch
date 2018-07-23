@@ -10,4 +10,4 @@ Optionally a list of Domain Administrator account names can be supplied and thes
 
 Optionally a second list of hashes from a second domain can also be supplied and HashMatch will identify common passwords between the two domains.
 
-Optionally HashMatch will correlate the hashcat cracked passwords output with reused hashes
+Optionally HashMatch will correlate the hashcat cracked passwords output with reused hashes and display the shared password in the header line.
