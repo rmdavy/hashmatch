@@ -32,7 +32,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.2",'blue')
+print colored("                                                                                      Version 1.3",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -40,13 +40,6 @@ Hashes=raw_input("[+]Please enter path to hash file: ")
 DA_Path=raw_input("[+](Optional)If you have a list of Domain Admins enter path or press Enter: ")
 second_hash_list=raw_input("[+](Optional)If you have a second set of hashes enter path or press Enter: ")
 hashcat_path=raw_input("[+](Optional)If you have hashcat cracked hashes output enter path or press Enter: ")
-
-#Check if DA list exists and if so open and add it list
-if os.path.exists(DA_Path):
-	print colored ("[+]Found file "+DA_Path,'green')
-	with open(DA_Path) as dafp:
-		for da in dafp:
-			da_list.append(da.rstrip())
 
 #Check if hashfile exists and if so open and add to list
 #any problems error out nicely
@@ -63,6 +56,13 @@ else:
 	print colored ("\n[-]Error File not found "+Hashes+"\n",'red')
 	sys.exit()
 
+#Check if DA list exists and if so open and add it list
+if os.path.exists(DA_Path):
+	print colored ("[+]Found file "+DA_Path,'green')
+	with open(DA_Path) as dafp:
+		for da in dafp:
+			da_list.append(da.rstrip())
+
 #Check to see if second hashes can be loaded
 if os.path.exists(second_hash_list):
 	print colored ("[+]Found file "+second_hash_list,'green')
@@ -78,8 +78,12 @@ if os.path.exists(second_hash_list):
 if os.path.exists(hashcat_path):
 	print colored ("[+]Found file "+hashcat_path,'green')
 	with open(hashcat_path) as fp:
+		#Regex to check that it's a recognised hash
 		for line in fp:
-			hashcat_output.append(line)
+			pwdumpmatch = re.compile('^(\S+?):([0-9a-fA-F]{32}):.*?\s*$')
+			pwdump = pwdumpmatch.match(line)
+			if pwdump:
+				hashcat_output.append(line)
 
 #Build a list of NT hashes and make unique
 for nt in hash_list:
@@ -164,4 +168,3 @@ print colored("[+]"+str(len(dup_hashes))+" Instances of password reuse were dete
 print colored("[+]"+str(len(hash_sets))+" Sets of hash reuse",'yellow')
 if len(da_list)>0:
 	print colored("[+]"+str(len(da_reuse))+" instances of DA reuse detected",'yellow')
-
