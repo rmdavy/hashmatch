@@ -16,5 +16,5 @@ Optionally HashMatch will correlate Enabled/Disabled users from provided lists.
 These can easily be generated using the following Powershell commands
 
 Import-Module activedirectory
-Get-Aduser -Filter 'Enabled -eq $false' -Properties *|select SamAccountName |export-csv C:\outputDisabled.csv
-Get-Aduser -Filter 'Enabled -eq $true' -Properties *|select SamAccountName  |export-csv C:\outputEnabled.csv
+Get-Aduser -Filter 'Enabled -eq $false' -Properties *|select SamAccountName |export-csv C:\outputDisabled.csv  
+Get-Aduser -Filter 'Enabled -eq $true' -Properties *|select SamAccountName  |export-csv C:\outputEnabled.csv  
