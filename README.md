@@ -1,6 +1,6 @@
 # HashMatch
 
-![HashMatch](https://github.com/rmdavy/hashmatch/blob/master/hash_match.JPG)
+![HashMatch](https://github.com/rmdavy/hashmatch/blob/master/hash_match1.JPG)
 
 More often than not during a pentest password reuse is identified for things like local administrator and solutions exist to combat this like LAPS. However with AD accounts and historic accounts in particular it can often be time consuming to find where passwords are reused.
 
