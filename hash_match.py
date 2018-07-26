@@ -1,4 +1,14 @@
 #! /usr/bin/python
+
+# Simple way to get Enabled/Disabled AD users
+# Import-Module activedirectory
+#
+# Disabled Users
+# Get-Aduser -Filter 'Enabled -eq $false' -Properties *|select SamAccountName |export-csv C:\outputDisabled.csv
+#
+# Enables Users
+# Get-Aduser -Filter 'Enabled -eq $true' -Properties *|select SamAccountName  |export-csv C:\outputEnabled.csv
+
 import os,sys,re
 
 try:
@@ -18,6 +28,8 @@ hash_sets=[]
 da_reuse=[]
 da_list=[]
 dirty=""
+enabled=[]
+disabled=[]
 
 #Print the banner out
 print "\n\n"
@@ -32,7 +44,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.3",'blue')
+print colored("                                                                                      Version 1.4",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -40,6 +52,8 @@ Hashes=raw_input("[+]Please enter path to hash file: ")
 DA_Path=raw_input("[+](Optional)If you have a list of Domain Admins enter path or press Enter: ")
 second_hash_list=raw_input("[+](Optional)If you have a second set of hashes enter path or press Enter: ")
 hashcat_path=raw_input("[+](Optional)If you have hashcat cracked hashes output enter path or press Enter: ")
+Enabled_Accounts=raw_input("[+](Optional)If you have a list of Enabled AD account names enter path or press Enter: ")
+Disabled_Accounts=raw_input("[+](Optional)If you have a list of Disabled AD account names enter path or press Enter: ")
 
 #Check if hashfile exists and if so open and add to list
 #any problems error out nicely
@@ -84,6 +98,36 @@ if os.path.exists(hashcat_path):
 			pwdump = pwdumpmatch.match(line)
 			if pwdump:
 				hashcat_output.append(line)
+
+#Check for enabled accounts file
+if os.path.exists(Enabled_Accounts):
+	print colored ("[+]Found file "+Enabled_Accounts,'green')
+	with open(Enabled_Accounts) as fp:
+		#Add account names to list
+		for line in fp:
+			if line.lstrip().rstrip().strip('"')!="SamAccountName" and line.lstrip().rstrip().strip('"') != "#TYPE Selected.Microsoft.ActiveDirectory.Management.ADUser":
+				enabled.append(line.lstrip().rstrip().strip('"'))
+
+	#Check account names against hash list and prefix hash list if found
+	for item in enabled:
+		for idx, usr in enumerate(hash_list):
+			if item in usr:
+				hash_list[idx]="AD Status - Enabled \t"+usr
+
+#Chck for disabled accounts file
+if os.path.exists(Disabled_Accounts):
+	print colored ("[+]Found file "+Disabled_Accounts,'green')
+	with open(Disabled_Accounts) as fp:
+		#Add account names to list
+		for line in fp:
+			if line.lstrip().rstrip().strip('"')!="SamAccountName" and line.lstrip().rstrip().strip('"') != "#TYPE Selected.Microsoft.ActiveDirectory.Management.ADUser":
+				disabled.append(line.lstrip().rstrip().strip('"'))
+
+	#Check account names against hash list and prefix hash list if found
+	for item in disabled:
+		for idx, usr in enumerate(hash_list):
+			if item in usr:
+				hash_list[idx]="AD Status - Disabled \t"+usr
 
 #Build a list of NT hashes and make unique
 for nt in hash_list:
@@ -166,5 +210,6 @@ print colored("[+]"+str(len(hash_list))+" Total Hashes in List",'yellow')
 print colored("[+]"+str(len(unique_nt))+" Unique Hashes",'yellow')
 print colored("[+]"+str(len(dup_hashes))+" Instances of password reuse were detected",'yellow')
 print colored("[+]"+str(len(hash_sets))+" Sets of hash reuse",'yellow')
+
 if len(da_list)>0:
 	print colored("[+]"+str(len(da_reuse))+" instances of DA reuse detected",'yellow')
