@@ -11,3 +11,10 @@ Optionally a list of Domain Administrator account names can be supplied and thes
 Optionally a second list of hashes from a second domain can also be supplied and HashMatch will identify common passwords between the two domains.
 
 Optionally HashMatch will correlate the hashcat cracked passwords output with reused hashes and display the shared password in the header line.
+
+Optionally HashMatch will correlate Enabled/Disabled users from provided lists.
+These can easily be generated using the following Powershell commands
+
+Import-Module activedirectory
+Get-Aduser -Filter 'Enabled -eq $false' -Properties *|select SamAccountName |export-csv C:\outputDisabled.csv
+Get-Aduser -Filter 'Enabled -eq $true' -Properties *|select SamAccountName  |export-csv C:\outputEnabled.csv
