@@ -31,6 +31,15 @@ dirty=""
 enabled=[]
 disabled=[]
 
+filepath=""
+fileoutput=[]
+
+#Setup some header details for fileoutput
+fileoutput.append("HashMatch File Output")
+fileoutput.append("By Richard Davy - 2018")
+fileoutput.append("https://github.com/rmdavy/hashmatch")
+fileoutput.append("@rd_pentest\n")
+
 #Print the banner out
 print "\n\n"
 print """
@@ -44,7 +53,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.4",'blue')
+print colored("                                                                                      Version 1.5",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -54,6 +63,7 @@ second_hash_list=raw_input("[+](Optional)If you have a second set of hashes ente
 hashcat_path=raw_input("[+](Optional)If you have hashcat cracked hashes output enter path or press Enter: ")
 Enabled_Accounts=raw_input("[+](Optional)If you have a list of Enabled AD account names enter path or press Enter: ")
 Disabled_Accounts=raw_input("[+](Optional)If you have a list of Disabled AD account names enter path or press Enter: ")
+filepath=raw_input("[+](Optional)Enter file path to save to file or press Enter: ")
 
 #Check if hashfile exists and if so open and add to list
 #any problems error out nicely
@@ -156,18 +166,37 @@ for unt in unique_nt:
 				if hash_match[1].split(":")[3]==hashcat.split(":")[1]:
 					#Print the string hash match with a new line at the beginning and end
 					if dirty!="HM":
-						print colored ("\n[+]Hash Match ",'yellow')+colored (":***CRACKED PASSWORD***: ",'red')+colored(hashcat.split(":")[2],'green')
+						
+						if len(hashcat.split(":")[2].rstrip().lstrip())==0:
+							print colored ("\n[+]Hash Match ",'yellow')+colored (":***CRACKED PASSWORD***: ",'red')+colored(hashcat.split(":")[2].rstrip()+"***BLANK PASSWORD***",'red')
+							#Check for fileoutput
+							if len(filepath)!=0:
+								fileoutput.append("\n[+]Hash Match :***CRACKED PASSWORD***: "+hashcat.split(":")[2].rstrip()+"***BLANK PASSWORD***")
+						else:
+							print colored ("\n[+]Hash Match ",'yellow')+colored (":***CRACKED PASSWORD***: ",'red')+colored(hashcat.split(":")[2].rstrip(),'green')
+							#Check for fileoutput
+							if len(filepath)!=0:
+								fileoutput.append("\n[+]Hash Match :***CRACKED PASSWORD***: "+hashcat.split(":")[2].rstrip())
+						
 						hash_sets.append("Hash Match")
 						dirty="HM"
 			
 			if dirty!="HM":
 				#Print the string hash match with a new line at the beginning and end
 				print colored ("\n[+]Hash Match",'yellow')
+				#Check for fileoutput
+				if len(filepath)!=0:
+					fileoutput.append("\n[+]Hash Match")
+
 				hash_sets.append("Hash Match")
 			dirty=""
 		else:
 			#Print the string hash match with a new line at the beginning and end
 			print colored ("\n[+]Hash Match",'yellow')
+			#Check for fileoutput
+			if len(filepath)!=0:
+				fileoutput.append("\n[+]Hash Match")
+
 			hash_sets.append("Hash Match")
 
 
@@ -181,6 +210,11 @@ for unt in unique_nt:
 					if d in m:
 						#Print verbose message in red
 						print colored(m +" ***DOMAIN ADMIN***",'red')
+						
+						#Check for fileoutput
+						if len(filepath)!=0:
+							fileoutput.append(m +" ***DOMAIN ADMIN***")
+
 						#Add da reuse to list to create counter
 						da_reuse.append(m)
 						#Add duplicate hashes to list to create counter
@@ -189,7 +223,13 @@ for unt in unique_nt:
 						dirty="da"
 				#if dirty flag is empty print match
 				if dirty!="da":
+					#Print result to screen
 					print m
+
+					#Check for fileoutput
+					if len(filepath)!=0:
+						fileoutput.append(m)
+
 					#Add duplicate hashes to list to create counter
 					dup_hashes.append(m)
 				#Clear dirty flag
@@ -197,7 +237,13 @@ for unt in unique_nt:
 		else:
 		#If the list of Domain Admins is 0 just print out matches
 			for m in hash_match:
+				#Print result to screen
 				print m
+
+				#Check for fileoutput
+				if len(filepath)!=0:
+					fileoutput.append(m)
+
 				#Add duplicate hashes to list to create counter
 				dup_hashes.append(m)
 
@@ -211,5 +257,29 @@ print colored("[+]"+str(len(unique_nt))+" Unique Hashes",'yellow')
 print colored("[+]"+str(len(dup_hashes))+" Instances of password reuse were detected",'yellow')
 print colored("[+]"+str(len(hash_sets))+" Sets of hash reuse",'yellow')
 
+#Build List for file output
+if len(filepath)!=0:
+	fileoutput.append("\n[+]Statistics")
+	fileoutput.append("[+]"+str(len(hash_list))+" Total Hashes in List")
+	fileoutput.append("[+]"+str(len(unique_nt))+" Unique Hashes")
+	fileoutput.append("[+]"+str(len(dup_hashes))+" Instances of password reuse were detected")
+	fileoutput.append("[+]"+str(len(hash_sets))+" Sets of hash reuse")
+
 if len(da_list)>0:
 	print colored("[+]"+str(len(da_reuse))+" instances of DA reuse detected",'yellow')
+	#Check for fileoutput
+	if len(filepath)!=0:
+		fileoutput.append("[+]"+str(len(da_reuse))+" instances of DA reuse detected")
+
+#Write Details to file
+if len(filepath)!=0:
+	#Open file
+	fout=open(filepath,'w')
+	#Write details
+	for x in fileoutput:
+		fout.write(x+"\n")
+	#Close handle
+	fout.close()
+	#Check if file exists, if so print msg
+	if os.path.exists(filepath):
+		print colored ("\n[+]Details Successfully Written to "+filepath,'green')
