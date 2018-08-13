@@ -30,6 +30,8 @@ da_list=[]
 dirty=""
 enabled=[]
 disabled=[]
+cracked_enabled=[]
+cracked_enabled_da=[]
 
 filepath=""
 fileoutput=[]
@@ -53,7 +55,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.5",'blue')
+print colored("                                                                                      Version 1.6",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -270,6 +272,41 @@ if len(da_list)>0:
 	#Check for fileoutput
 	if len(filepath)!=0:
 		fileoutput.append("[+]"+str(len(da_reuse))+" instances of DA reuse detected")
+
+#If we have hashcat details and enabled accounts details let's get some stats
+if len(hashcat_output)>0 and len(enabled)>0:
+	for name in enabled:
+		for acc_name in hashcat_output:
+			if name in acc_name:
+				cracked_enabled.append(name)
+	
+	fout=open("/tmp/cracked_enabled.txt",'w')
+	#Write details
+	for x in cracked_enabled:
+		fout.write(x+"\n")
+	#Close handle
+	fout.close()
+
+	print colored("[+]"+str(len(cracked_enabled))+" enabled account(s) where password has been cracked - written to /tmp/cracked_enabled.txt",'yellow')
+	if len(filepath)!=0:
+		fileoutput.append("[+]"+str(len(cracked_enabled))+" enabled account(s) where password has been cracked",'yellow')
+
+	if len(da_list)>0 and len(cracked_enabled)>0:
+		for da_name in da_list:
+			for ce in cracked_enabled:
+				if da_name in ce:
+					cracked_enabled_da.append(da_name)
+
+		fout=open("/tmp/cracked_enabled_da.txt",'w')
+		#Write details
+		for x in cracked_enabled_da:
+			fout.write(x+"\n")
+		#Close handle
+		fout.close()
+
+		print colored("[+]"+str(len(cracked_enabled_da))+" cracked and enabled DA account(s) - written to /tmp/cracked_enabled_da.txt",'yellow')
+		if len(filepath)!=0:
+			fileoutput.append("[+]"+str(len(cracked_enabled_da))+" cracked and enabled DA account(s)",'yellow')
 
 #Write Details to file
 if len(filepath)!=0:
