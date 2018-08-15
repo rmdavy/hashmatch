@@ -11,6 +11,9 @@
 
 import os,sys,re
 
+from collections import Counter
+from prettytable import PrettyTable
+
 try:
 	from termcolor import colored 
 except ImportError:
@@ -18,7 +21,9 @@ except ImportError:
 	logging.error("termcolor missing")
 	exit(1)
 
+##################
 #Define stuff here
+##################
 hashcat_output=[]
 hash_list = []
 unique_nt=[]
@@ -31,18 +36,24 @@ dirty=""
 enabled=[]
 disabled=[]
 cracked_enabled=[]
+cracked_enabled_freq=[]
+cracked_enabled_password=[]
 cracked_enabled_da=[]
 
 filepath=""
 fileoutput=[]
 
+#########################################
 #Setup some header details for fileoutput
+#########################################
 fileoutput.append("HashMatch File Output")
 fileoutput.append("By Richard Davy - 2018")
 fileoutput.append("https://github.com/rmdavy/hashmatch")
 fileoutput.append("@rd_pentest\n")
 
+#####################
 #Print the banner out
+#####################
 print "\n\n"
 print """
 $$\   $$\                     $$\             $$\      $$\            $$\               $$\       
@@ -55,7 +66,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.6",'blue')
+print colored("                                                                                      Version 1.7",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -124,7 +135,8 @@ if os.path.exists(Enabled_Accounts):
 	for item in enabled:
 		for idx, usr in enumerate(hash_list):
 			if item in usr:
-				hash_list[idx]="AD Status - Enabled \t"+usr
+				if not "AD Status - Enabled" in hash_list[idx]:
+					hash_list[idx]="AD Status - Enabled \t"+usr
 
 #Chck for disabled accounts file
 if os.path.exists(Disabled_Accounts):
@@ -139,7 +151,8 @@ if os.path.exists(Disabled_Accounts):
 	for item in disabled:
 		for idx, usr in enumerate(hash_list):
 			if item in usr:
-				hash_list[idx]="AD Status - Disabled \t"+usr
+				if not "AD Status - Disabled" in hash_list[idx]:
+					hash_list[idx]="AD Status - Disabled \t"+usr
 
 #Build a list of NT hashes and make unique
 for nt in hash_list:
@@ -279,7 +292,9 @@ if len(hashcat_output)>0 and len(enabled)>0:
 		for acc_name in hashcat_output:
 			if name in acc_name:
 				cracked_enabled.append(name)
+				cracked_enabled_password.append(acc_name)
 	
+	#Write Cracked and Enabled Usernames to file
 	fout=open("/tmp/cracked_enabled.txt",'w')
 	#Write details
 	for x in cracked_enabled:
@@ -289,8 +304,27 @@ if len(hashcat_output)>0 and len(enabled)>0:
 
 	print colored("[+]"+str(len(cracked_enabled))+" enabled account(s) where password has been cracked - written to /tmp/cracked_enabled.txt",'yellow')
 	if len(filepath)!=0:
-		fileoutput.append("[+]"+str(len(cracked_enabled))+" enabled account(s) where password has been cracked",'yellow')
+		fileoutput.append("[+]"+str(len(cracked_enabled))+" enabled account(s) where password has been cracked - written to /tmp/cracked_enabled.txt")
 
+	#Write Cracked and Enabled Passwords to file
+	fout=open("/tmp/cracked_enabled_passwords.txt",'w')
+	#Write details
+	for x in cracked_enabled_password:
+		if len(x.split(":")[2].rstrip().lstrip())==0:
+			fout.write("blankpw")
+			cracked_enabled_freq.append("blankpw")
+		else:
+			fout.write((x.split(":")[2]).rstrip())
+			cracked_enabled_freq.append((x.split(":")[2]).rstrip())
+	#Close handle
+	fout.close()
+
+	print colored("[+]"+str(len(cracked_enabled_password))+" cracked enabled passwords written to /tmp/cracked_enabled_passwords.txt",'yellow')
+	if len(filepath)!=0:
+		fileoutput.append("[+]"+str(len(cracked_enabled_password))+" cracked enabled passwords written to /tmp/cracked_enabled_passwords.txt")
+
+	#Check to see if da_list and cracked_enabled is greater than zero
+	#Check to see which DA accounts have cracked passwords and write to file
 	if len(da_list)>0 and len(cracked_enabled)>0:
 		for da_name in da_list:
 			for ce in cracked_enabled:
@@ -306,7 +340,82 @@ if len(hashcat_output)>0 and len(enabled)>0:
 
 		print colored("[+]"+str(len(cracked_enabled_da))+" cracked and enabled DA account(s) - written to /tmp/cracked_enabled_da.txt",'yellow')
 		if len(filepath)!=0:
-			fileoutput.append("[+]"+str(len(cracked_enabled_da))+" cracked and enabled DA account(s)",'yellow')
+			fileoutput.append("[+]"+str(len(cracked_enabled_da))+" cracked and enabled DA account(s)")
+
+	#Let's figure out the top 20 most common enabled passwords
+	a = Counter(cracked_enabled_freq)
+	
+	#print to file
+	if len(filepath)!=0:
+			fileoutput.append("\n[+]Most Common Enabled Passwords")
+			fileoutput.append("Password\tInstances")
+
+	#print to screen
+	print colored ("\n[+]Most Common Enabled Passwords",'green')
+	t = PrettyTable(['Password', 'Instances'])
+	
+	for letter, count in a.most_common(20):
+		#print to screen
+		t.add_row([letter, str(count)])
+		
+		#print to file
+		if len(filepath)!=0:
+			fileoutput.append(letter+"\t"+str(count))
+
+	print t
+	
+	#Let's check complexity requirements
+	#cracked_enabled_password
+	print colored("\nChecking Windows Default Complexity Requirements against Cracked Enabled Passwords",'green')
+	t = PrettyTable(['Issue', 'Username', 'Password'])
+	
+	#print to file
+	if len(filepath)!=0:
+		fileoutput.append("\nChecking Windows Default Complexity Requirements against Cracked Enabled Passwords")
+		fileoutput.append("Issue, Username, Password")
+
+	ccheck=0
+	for password in cracked_enabled_password:
+		count=0
+		line=password.split(":")[2].rstrip()
+
+		#Modify the 8 on the line below if the minimum has been changed.
+		if len(line)<8:
+			t.add_row(['Too Short', password.split(":")[0].rstrip(),line])
+			ccheck+=1
+
+			#print to file
+			if len(filepath)!=0:
+				fileoutput.append("Too Short, "+password.split(":")[0].rstrip()+", "+line)
+		else:
+			if re.search('([0-9])', line, flags=0):
+				count+=1
+
+			if re.search('([a-z])', line, flags=0):
+				count+=1
+
+			if re.search('([A-Z])', line, flags=0):
+				count+=1
+
+			if re.search('([\W_])', line, flags=0):
+				count+=1
+
+			if count<3:
+				t.add_row(['Complexity requirements not met', password.split(":")[0].rstrip(),line])
+				ccheck+=1
+
+				#print to file
+				if len(filepath)!=0:
+					fileoutput.append("Complexity requirements not met, "+password.split(":")[0].rstrip()+", "+line)
+
+	#Put check here to see if we have bad passwords?
+	if ccheck>0:
+		print t
+	else:
+		print colored ("No passwords found which don't meet complexity requirements",'yellow')
+		#print to file
+		if len(filepath)!=0:
+			fileoutput.append("No passwords found which don't meet complexity requirements")
 
 #Write Details to file
 if len(filepath)!=0:
