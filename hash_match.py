@@ -21,9 +21,8 @@ except ImportError:
 	logging.error("termcolor missing")
 	exit(1)
 
-##################
+
 #Define stuff here
-##################
 hashcat_output=[]
 hash_list = []
 unique_nt=[]
@@ -40,20 +39,18 @@ cracked_enabled_freq=[]
 cracked_enabled_password=[]
 cracked_enabled_da=[]
 
+usr1=""
 filepath=""
 fileoutput=[]
 
-#########################################
+
 #Setup some header details for fileoutput
-#########################################
 fileoutput.append("HashMatch File Output")
 fileoutput.append("By Richard Davy - 2018")
 fileoutput.append("https://github.com/rmdavy/hashmatch")
 fileoutput.append("@rd_pentest\n")
 
-#####################
 #Print the banner out
-#####################
 print "\n\n"
 print """
 $$\   $$\                     $$\             $$\      $$\            $$\               $$\       
@@ -66,7 +63,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.7",'blue')
+print colored("                                                                                      Version 1.8",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -134,7 +131,12 @@ if os.path.exists(Enabled_Accounts):
 	#Check account names against hash list and prefix hash list if found
 	for item in enabled:
 		for idx, usr in enumerate(hash_list):
-			if item in usr:
+			#Cut out username from hashcat details for an exact username match
+			usr1=usr.split(":")[0]
+			if "\\" in usr1:
+				usr1=usr1.split("\\")[1]
+				
+			if item.lstrip().rstrip()==usr1:
 				if not "AD Status - Enabled" in hash_list[idx]:
 					hash_list[idx]="AD Status - Enabled \t"+usr
 
@@ -150,7 +152,12 @@ if os.path.exists(Disabled_Accounts):
 	#Check account names against hash list and prefix hash list if found
 	for item in disabled:
 		for idx, usr in enumerate(hash_list):
-			if item in usr:
+			#Cut out username from hashcat details for an exact username match
+			usr1=usr.split(":")[0]
+			if "\\" in usr1:
+				usr1=usr1.split("\\")[1]
+				
+			if item.lstrip().rstrip()==usr1:
 				if not "AD Status - Disabled" in hash_list[idx]:
 					hash_list[idx]="AD Status - Disabled \t"+usr
 
@@ -289,8 +296,14 @@ if len(da_list)>0:
 #If we have hashcat details and enabled accounts details let's get some stats
 if len(hashcat_output)>0 and len(enabled)>0:
 	for name in enabled:
+		#TODO Sanitise details here
+		#Do an exact username match
 		for acc_name in hashcat_output:
-			if name in acc_name:
+			usr1=acc_name.split(":")[0]
+			if "\\" in usr1:
+				usr1=usr1.split("\\")[1]
+
+			if name == usr1:
 				cracked_enabled.append(name)
 				cracked_enabled_password.append(acc_name)
 	
@@ -311,10 +324,10 @@ if len(hashcat_output)>0 and len(enabled)>0:
 	#Write details
 	for x in cracked_enabled_password:
 		if len(x.split(":")[2].rstrip().lstrip())==0:
-			fout.write("blankpw")
+			fout.write("blankpw"+"\n")
 			cracked_enabled_freq.append("blankpw")
 		else:
-			fout.write((x.split(":")[2]).rstrip())
+			fout.write((x.split(":")[2]).rstrip()+"\n")
 			cracked_enabled_freq.append((x.split(":")[2]).rstrip())
 	#Close handle
 	fout.close()
