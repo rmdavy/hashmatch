@@ -38,6 +38,7 @@ cracked_enabled=[]
 cracked_enabled_freq=[]
 cracked_enabled_password=[]
 cracked_enabled_da=[]
+lm_accounts=[]
 
 usr1=""
 filepath=""
@@ -63,7 +64,7 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.8",'blue')
+print colored("                                                                                      Version 1.9",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
@@ -287,11 +288,44 @@ if len(filepath)!=0:
 	fileoutput.append("[+]"+str(len(dup_hashes))+" Instances of password reuse were detected")
 	fileoutput.append("[+]"+str(len(hash_sets))+" Sets of hash reuse")
 
+#Output the number of instances of DA reuse this includes enabled and disabled accounts.
 if len(da_list)>0:
 	print colored("[+]"+str(len(da_reuse))+" instances of DA reuse detected",'yellow')
 	#Check for fileoutput
 	if len(filepath)!=0:
 		fileoutput.append("[+]"+str(len(da_reuse))+" instances of DA reuse detected")
+
+#Let's do a check for LM accounts find how many there are and output the account names to file.
+if len(hash_list)>0:
+	for item in hash_list:
+		if not item.split(":")[2]=="aad3b435b51404eeaad3b435b51404ee":
+			lm_accounts.append(item)
+			
+	if len(lm_accounts)>0:
+		#Write lm account usernames to file
+		fout=open("/tmp/lm_account_names.txt",'w')
+		#Write details
+		for x in lm_accounts:
+			fout.write(x.split(":")[0]+"\n")
+		#Close handle
+		fout.close()
+
+		print colored("[+]"+str(len(lm_accounts))+" LM hash(s) detected - account name(s) written to /tmp/lm_account_names.txt",'yellow')
+		if len(filepath)!=0:
+			fileoutput.append("[+]"+str(len(lm_accounts))+" LM hash(s) detected - account name(s) written to /tmp/lm_account_names.txt")
+
+		#Write lm account usernames to file
+		fout=open("/tmp/lm_accounts.txt",'w')
+		#Write details
+		for x in lm_accounts:
+			fout.write(x+"\n")
+		#Close handle
+		fout.close()
+
+		print colored("[+]"+str(len(lm_accounts))+" LM hash(s) detected - full account details written to /tmp/lm_accounts.txt",'yellow')
+		if len(filepath)!=0:
+			fileoutput.append("[+]"+str(len(lm_accounts))+" LM hash(s) detected - account details written to /tmp/lm_accounts.txt")
+
 
 #If we have hashcat details and enabled accounts details let's get some stats
 if len(hashcat_output)>0 and len(enabled)>0:
