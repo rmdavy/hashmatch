@@ -14,6 +14,8 @@ import os,sys,re
 from collections import Counter
 from prettytable import PrettyTable
 
+import hashlib,binascii
+
 try:
 	from termcolor import colored 
 except ImportError:
@@ -39,9 +41,11 @@ cracked_enabled_freq=[]
 cracked_enabled_password=[]
 cracked_enabled_da=[]
 lm_accounts=[]
+bad_list=[]
 
 usr1=""
 filepath=""
+badlistpath=""
 fileoutput=[]
 
 
@@ -64,16 +68,17 @@ $$ |  $$ |\$$$$$$$ |$$$$$$$  |$$ |  $$ |      $$ | \_/ $$ |\$$$$$$$ | \$$$$  |\$
 \__|  \__| \_______|\_______/ \__|  \__|      \__|     \__| \_______|  \____/  \_______|\__|  \__|
 """                                                                                         
 print colored("                                                                             By Richard Davy 2018",'yellow')
-print colored("                                                                                      Version 1.9",'blue')
+print colored("                                                                                      Version 1.9.1",'blue')
 print colored("                                                                                      @rd_pentest",'green')
 print "\n"                                                                                       
                                                                                                   
 Hashes=raw_input("[+]Please enter path to hash file: ")
 DA_Path=raw_input("[+](Optional)If you have a list of Domain Admins enter path or press Enter: ")
 second_hash_list=raw_input("[+](Optional)If you have a second set of hashes enter path or press Enter: ")
-hashcat_path=raw_input("[+](Optional)If you have hashcat cracked hashes output enter path or press Enter: ")
+hashcat_path=raw_input("[+](Optional)If you have HashCat cracked hashes output enter path or press Enter: ")
 Enabled_Accounts=raw_input("[+](Optional)If you have a list of Enabled AD account names enter path or press Enter: ")
 Disabled_Accounts=raw_input("[+](Optional)If you have a list of Disabled AD account names enter path or press Enter: ")
+badlistpath=raw_input("[+](Optional)If you have a list of Weak passwords to check for enter path or press Enter: ")
 filepath=raw_input("[+](Optional)Enter file path to save to file or press Enter: ")
 
 #Check if hashfile exists and if so open and add to list
@@ -161,6 +166,18 @@ if os.path.exists(Disabled_Accounts):
 			if item.lstrip().rstrip()==usr1:
 				if not "AD Status - Disabled" in hash_list[idx]:
 					hash_list[idx]="AD Status - Disabled \t"+usr
+
+#Check to see if bad passwords list can be loaded
+if os.path.exists(badlistpath):
+	print colored ("[+]Found file "+badlistpath,'green')
+	with open(badlistpath) as fp:
+		#Regex to check that it's a recognised hash
+		for line in fp:
+			hash = hashlib.new('md4', line.encode('utf-16le')).digest()
+			#Add to arrary in format badpassword:hash for easy retrieval
+			bad_list.append(line.strip()+":"+binascii.hexlify(hash))
+
+		print colored("Loaded "+str(len(bad_list))+" weak password(s) from file",'yellow')
 
 #Build a list of NT hashes and make unique
 for nt in hash_list:
@@ -330,7 +347,6 @@ if len(hash_list)>0:
 #If we have hashcat details and enabled accounts details let's get some stats
 if len(hashcat_output)>0 and len(enabled)>0:
 	for name in enabled:
-		#TODO Sanitise details here
 		#Do an exact username match
 		for acc_name in hashcat_output:
 			usr1=acc_name.split(":")[0]
@@ -463,6 +479,18 @@ if len(hashcat_output)>0 and len(enabled)>0:
 		#print to file
 		if len(filepath)!=0:
 			fileoutput.append("No passwords found which don't meet complexity requirements")
+
+#Do some checks here for any passwords which are in the bad passwords list
+if len(bad_list)>0:
+	print colored("\nChecking for Passwords in Weak Password List",'green')
+	z = PrettyTable(['Username', 'Password'])
+
+	for u_hash in hash_list:
+		for b_user in bad_list:
+			if b_user.split(":")[1].rstrip()==u_hash.split(":")[3]:
+				z.add_row([u_hash.split(":")[0].rstrip(),b_user.split(":")[0].rstrip()])			
+
+	print z 
 
 #Write Details to file
 if len(filepath)!=0:
