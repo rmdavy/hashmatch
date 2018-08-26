@@ -1,4 +1,4 @@
-# HashMatch - Current Version 1.9
+# HashMatch - Current Version 1.9.1
 
 ![HashMatch](https://github.com/rmdavy/hashmatch/blob/master/hash_match1.JPG)
 
